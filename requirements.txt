@@ -1,0 +1,6 @@
+pandas
+tiktoken
+numpy
+openai
+tenacity
+streamlit
