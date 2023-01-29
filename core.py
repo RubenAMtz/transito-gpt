@@ -31,29 +31,32 @@ def load_embeddings(fname: str) -> dict[tuple[str, str], list[float]]:
     Read the document embeddings and their keys from a CSV.
     
     fname is the path to a CSV with exactly these named columns: 
-        "titulo", "capitulo", "articulo", "0", "1", ... up to the length of the embedding vectors.
+         "articulo", "0", "1", ... up to the length of the embedding vectors and "tokens" which is empty
     """
-    
     df = pd.read_csv(fname, header=0)
-    max_dim = max([int(c) for c in df.columns if c != "titulo" and c != "capitulo" and c != "articulo"])
+    # remove index column
+    df = df.drop(columns=["Unnamed: 0"])
+
+
+    max_dim = max([int(c) for c in df.columns if c != "articulo" and c != "tokens"])
     return {
-           (r.titulo, r.capitulo, r.articulo): [r[str(i)] for i in range(max_dim + 1)] for _, r in df.iterrows()
+           (r.articulo): [r[str(i)] for i in range(max_dim + 1)] for _, r in df.iterrows()
     }
 
 
-def save_embeddings(fname: str, embeddings: dict[tuple[str, str], list[float]]):
+def save_embeddings(fname: str, embeddings: dict[tuple[str], list[float]]):
     """
     Save the document embeddings and their keys to a CSV.
     
     fname is the path to a CSV with exactly these named columns: 
-        "titulo", "capitulo", "capitulo", "articulo", "0", "1", ... up to the length of the embedding vectors.
+        "articulo", "0", "1", ... up to the length of the embedding vectors.
     """
-    df = pd.DataFrame([
-        {"titulo": idx[0], "capitulo": idx[1], "articulo": idx[2], **{str(i): v for i, v in enumerate(embedding)}} 
-        for idx, embedding in embeddings.items()
-    ])
-    df.to_csv(fname, index=False)
-
+    df = pd.DataFrame(embeddings)
+    df = df.T
+    df = df.reset_index()
+    df = df.rename(columns={"index": "articulo"})
+    df.to_csv(fname, header=True)
+    
 
 def vector_similarity(x: list[float], y: list[float]) -> float:
     """
@@ -90,10 +93,11 @@ def construct_prompt(question: str, context_embeddings: dict, df: pd.DataFrame) 
      
     for _, section_index in most_relevant_document_sections:
         # Add contexts until we run out of space.
-        print(section_index)
+        # print(section_index)
         document_section = df.loc[section_index]
         
         chosen_sections_len += document_section.tokens + separator_len
+        # print(chosen_sections_len)
         if chosen_sections_len > MAX_SECTION_LEN:
             break
             
@@ -104,7 +108,7 @@ def construct_prompt(question: str, context_embeddings: dict, df: pd.DataFrame) 
     print(f"Selected {len(chosen_sections)} document sections:")
     print("\n".join(chosen_sections_indexes))
     
-    header = """Contesta la pregunta de la forma más honesta posible usando el contexto proporcionado, haz referencias al contexto si es necesario, cuando hagas referencia al contexto di "Segun el documento oficial ", y si la respuesta no está contenida en el texto a continuación, diga "Una disculpa, no lo sé".\n\nContexto:\n"""
+    header = """Contesta la pregunta de la forma más honesta posible apoyandote del contexto proporcionado, haz referencias al contexto si es necesario, cuando hagas referencia al contexto di "Segun el documento oficial ", y si la respuesta no está contenida en el texto a continuación, diga "Una disculpa, no lo sé, intenta siendo más específico. Asegúra que la respuesta tenga que ver con la pregunta Q:".\n\nContexto:\n"""
     
     return header + "".join(chosen_sections) + "\n\n Q: " + question + "\n A:"
 
@@ -119,7 +123,7 @@ def get_section_text(section_index: tuple[float, tuple[str, str, str]], df: pd.D
 def answer_query_with_context(
     query: str,
     df: pd.DataFrame,
-    document_embeddings: dict[(str, str), np.array],
+    document_embeddings: dict[(str), np.array],
     show_prompt: bool = False
 ) -> str:
     prompt = construct_prompt(
@@ -130,6 +134,7 @@ def answer_query_with_context(
     
     if show_prompt:
         print(prompt)
+
 
     response = openai.Completion.create(
                 prompt=prompt,
