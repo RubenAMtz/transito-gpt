@@ -1,10 +1,12 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
-import openai
-import tiktoken
 import core
-import constants
+
+df_name = "leydetransitov3.csv"
+df_index_columns = ["articulo", "parte"]
+embedding_index_columns = ["articulo", "parte"]
+
+embeddings_name = "embeddingsv3.csv"
 
 def space(num_lines=1):
     """Adds empty lines to the Streamlit app."""
@@ -13,7 +15,7 @@ def space(num_lines=1):
 
 def format_section(sections: list[tuple[float, tuple[str, str, str]]], df: pd.DataFrame):
     """Formats a section of the law to be displayed in the Streamlit app.
-    Section is a list of tuples like (0.8596269121097068, (' SEGUNDO ', ' V', '81'))
+    Section is a list of tuples like (0.8596269121097068, ('articulo 1', 'parte_01'))
 
     Returns a string with the section formatted as follows:
     "Articulo: 81": {text of the section according to df}
@@ -25,12 +27,12 @@ def format_section(sections: list[tuple[float, tuple[str, str, str]]], df: pd.Da
         # get the text of the section
         section_text = core.get_section_text(section, df)
         # get the title, chapter, and article of the section
-        article = section[1]
+        article, parte = section[1]
         # format the section
         formated_text = f"""
         {article.upper()}
         
-        {section_text}\n\n
+        ...{section_text}...\n\n
         """
         # append the section to the full text
         full_text += formated_text
@@ -45,11 +47,10 @@ if __name__ == "__main__":
     # cache the data but do not show the loading message
     @st.cache(allow_output_mutation=True, show_spinner=False)
     def load_data():
-        df = pd.read_csv("leydetransitov2.csv", header=0)
-        # df = df.set_index(['titulo','capitulo','articulo'])
-        df = df.set_index(['articulo'])
+        df = pd.read_csv(df_name, header=0)
+        df = df.set_index(df_index_columns)
 
-        document_embeddings = core.load_embeddings("embeddingsv2.csv")
+        document_embeddings = core.load_embeddings(embeddings_name, embedding_index_columns)
         return df, document_embeddings
     
     df, document_embeddings = load_data()
@@ -75,6 +76,9 @@ if __name__ == "__main__":
         prompt = core.construct_prompt(query, document_embeddings, df)
         # call the API with the prompt
         answer = core.answer_query_with_context(query, df, document_embeddings)
+
+        # point the user to the sections that were used to answer the question
+        answer = answer + "\n\nPara informacion más clara y precisa, te invitamos a leer los articulos en los que está basada esta respuesta:"
         
         # show a section with the results
         st.markdown("### Resultados")
