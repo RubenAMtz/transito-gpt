@@ -28,7 +28,7 @@ def format_section(sections: list[tuple[float, tuple[str, str, str]]], df: pd.Da
         article = section[1]
         # format the section
         formated_text = f"""
-        Articulo {article}
+        {article.upper()}
         
         {section_text}\n\n
         """
