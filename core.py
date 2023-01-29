@@ -4,6 +4,8 @@ import pandas as pd
 import pandas as pd
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 from constants import COMPLETIONS_MODEL, EMBEDDING_MODEL, MAX_SECTION_LEN, SEPARATOR, ENCODING, encoding, separator_len, COMPLETIONS_API_PARAMS
+from constants import HEADER, ENCODING_MODEL
+import tiktoken
 
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
@@ -12,6 +14,8 @@ def get_embedding(text: str, model: str=EMBEDDING_MODEL) -> list[float]:
       model=model,
       input=text
     )
+    query_embedding_length = len(result["data"][0]["embedding"])
+    print(f"Embedding length: {query_embedding_length}")
     return result["data"][0]["embedding"]
 
 
@@ -26,36 +30,38 @@ def compute_doc_embeddings(df: pd.DataFrame) -> dict[tuple[str, str], list[float
     }
 
 
-def load_embeddings(fname: str) -> dict[tuple[str, str], list[float]]:
+def load_embeddings(fname: str, index_columns: list[str]) -> dict[tuple[str, str], list[float]]:
     """
     Read the document embeddings and their keys from a CSV.
     
     fname is the path to a CSV with exactly these named columns: 
-         "articulo", "0", "1", ... up to the length of the embedding vectors and "tokens" which is empty
+         index_columns[0], index_columns[1], ..., index_columns[n], "0", "1", ... up to the length of the embedding vectors.
     """
     df = pd.read_csv(fname, header=0)
     # remove index column
     df = df.drop(columns=["Unnamed: 0"])
 
-
-    max_dim = max([int(c) for c in df.columns if c != "articulo" and c != "tokens"])
+    # get the maximum dimension of the embedding vectors, ignoring the index columns and the tokens column
+    max_dim = max([int(c) for c in df.columns if c not in index_columns]) + 1
     return {
-           (r.articulo): [r[str(i)] for i in range(max_dim + 1)] for _, r in df.iterrows()
+        (row.articulo, row.parte): [row[str(i)] for i in range(max_dim)] for _, row in df.iterrows()
     }
 
 
-def save_embeddings(fname: str, embeddings: dict[tuple[str], list[float]]):
+def save_embeddings(fname: str, index_columns: list[str], embeddings: dict[tuple[str], list[float]]):
     """
     Save the document embeddings and their keys to a CSV.
     
     fname is the path to a CSV with exactly these named columns: 
-        "articulo", "0", "1", ... up to the length of the embedding vectors.
+        index_columns[0], index_columns[1], ..., index_columns[n], "0", "1", ... up to the length of the embedding vectors.
     """
     df = pd.DataFrame(embeddings)
-    df = df.T
+    df = df.transpose()
+    df.columns = [str(i) for i in range(len(df.columns))]
     df = df.reset_index()
-    df = df.rename(columns={"index": "articulo"})
-    df.to_csv(fname, header=True)
+    df.columns = index_columns + [str(i) for i in range(len(df.columns) - len(index_columns))]
+
+    df.to_csv(fname)
     
 
 def vector_similarity(x: list[float], y: list[float]) -> float:
@@ -87,14 +93,18 @@ def construct_prompt(question: str, context_embeddings: dict, df: pd.DataFrame) 
     """
     most_relevant_document_sections = order_document_sections_by_query_similarity(question, context_embeddings)
     
+    # used to calculate the length of the header's prompt encoding
+    gpt_encoding = tiktoken.get_encoding(ENCODING_MODEL)
+
     chosen_sections = []
-    chosen_sections_len = 0
+    chosen_sections_len = len(gpt_encoding.encode(HEADER))
     chosen_sections_indexes = []
      
     for _, section_index in most_relevant_document_sections:
         # Add contexts until we run out of space.
-        # print(section_index)
+        print(section_index)
         document_section = df.loc[section_index]
+        # get the value of the tokens column
         
         chosen_sections_len += document_section.tokens + separator_len
         # print(chosen_sections_len)
@@ -108,9 +118,7 @@ def construct_prompt(question: str, context_embeddings: dict, df: pd.DataFrame) 
     print(f"Selected {len(chosen_sections)} document sections:")
     print("\n".join(chosen_sections_indexes))
     
-    header = """Contesta la pregunta de la forma más honesta posible apoyandote del contexto proporcionado, haz referencias al contexto si es necesario, cuando hagas referencia al contexto di algo como "Segun el documento oficial ", y si la respuesta no está contenida en el texto a continuación, diga "Una disculpa, no lo sé, intenta siendo más específico. Asegúrate que la respuesta tenga que ver con la pregunta Q y describe tu respuesta con un tono amigable y formal. Enriquice la respuesta con datos relevantes".\n\nContexto:\n"""
-    
-    return header + "".join(chosen_sections) + "\n\n Q: " + question + "\n A:"
+    return HEADER + "".join(chosen_sections) + "\n\n Q: " + question + "\n A:"
 
 def get_section_text(section_index: tuple[float, tuple[str, str, str]], df: pd.DataFrame) -> str:
     """
