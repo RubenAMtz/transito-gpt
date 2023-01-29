@@ -108,7 +108,7 @@ def construct_prompt(question: str, context_embeddings: dict, df: pd.DataFrame) 
     print(f"Selected {len(chosen_sections)} document sections:")
     print("\n".join(chosen_sections_indexes))
     
-    header = """Contesta la pregunta de la forma más honesta posible apoyandote del contexto proporcionado, haz referencias al contexto si es necesario, cuando hagas referencia al contexto di "Segun el documento oficial ", y si la respuesta no está contenida en el texto a continuación, diga "Una disculpa, no lo sé, intenta siendo más específico. Asegúra que la respuesta tenga que ver con la pregunta Q:".\n\nContexto:\n"""
+    header = """Contesta la pregunta de la forma más honesta posible apoyandote del contexto proporcionado, haz referencias al contexto si es necesario, cuando hagas referencia al contexto di algo como "Segun el documento oficial ", y si la respuesta no está contenida en el texto a continuación, diga "Una disculpa, no lo sé, intenta siendo más específico. Asegúrate que la respuesta tenga que ver con la pregunta Q y describe tu respuesta con un tono amigable y formal. Enriquice la respuesta con datos relevantes".\n\nContexto:\n"""
     
     return header + "".join(chosen_sections) + "\n\n Q: " + question + "\n A:"
 
