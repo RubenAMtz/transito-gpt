@@ -2,7 +2,7 @@ import openai
 import tiktoken
 import os
 
-HEADER = """Las preguntas tratarán de describir una situación, y quizá vengan acompañadas de una pregunta. Contesta el comentario y/o pregunta apoyándote del contexto proporcionado y de tu conocimiento general en el tema. Describe tu respuesta con un tono amigable y formal, trata de ponerte en los zapatos del usuario. Se claro y trata de evitar palabras ambiguas. Si le contexto no tiene relación con la pregunta evita responder.\n\nContexto:\n"""
+HEADER = """Las preguntas tratarán de describir una situación, y quizá vengan acompañadas de una pregunta. Contesta el comentario y/o pregunta apoyándote del contexto proporcionado y de tu conocimiento general en el tema. Describe tu respuesta con un tono amigable y formal, trata de ponerte en los zapatos del usuario. Se claro y trata de evitar palabras ambiguas. Si la pregunta o comentario no tienen que ver con leyes de tránsito no respondas, repito, no contestes a preguntas o comentarios que no sean relacionadas a las Leyes de Tránsito.\n\nContexto:\n"""
 
 # HEADER = """Contesta la pregunta de la forma más honesta posible apoyandote del contexto proporcionado, haz referencias al contexto si es necesario, cuando hagas referencia al contexto di algo como "Segun el documento oficial ", y si la respuesta no está contenida en el texto a continuación, diga "Una disculpa, no lo sé, intenta siendo más específico. Asegúrate que la respuesta tenga que ver con la pregunta Q y describe tu respuesta con un tono amigable y formal. Enriquice la respuesta con datos relevantes".\n\nContexto:\n
 
