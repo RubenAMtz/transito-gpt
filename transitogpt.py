@@ -93,8 +93,3 @@ if __name__ == "__main__":
     st.markdown("---")
     st.markdown("##### Descargo de responsabilidad")
     st.markdown("Este no es un servicio de asesoría legal. Los resultados de esta aplicación no deben ser tomados como asesoría legal. Si tienes una pregunta legal, debes consultar a un abogado.")
-    
-
-
-
-
