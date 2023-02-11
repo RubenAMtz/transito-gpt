@@ -4,8 +4,10 @@ import pandas as pd
 import pandas as pd
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 from constants import COMPLETIONS_MODEL, EMBEDDING_MODEL, MAX_SECTION_LEN, SEPARATOR, ENCODING, encoding, separator_len, COMPLETIONS_API_PARAMS
-from constants import HEADER, ENCODING_MODEL
+from constants import HEADER, ENCODING_MODEL, QUESTIONS
 import tiktoken
+import re
+from pprint import pprint
 
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
@@ -15,7 +17,6 @@ def get_embedding(text: str, model: str=EMBEDDING_MODEL) -> list[float]:
       input=text
     )
     query_embedding_length = len(result["data"][0]["embedding"])
-    print(f"Embedding length: {query_embedding_length}")
     return result["data"][0]["embedding"]
 
 
@@ -92,7 +93,8 @@ def construct_prompt(question: str, context_embeddings: dict, df: pd.DataFrame) 
     Fetch relevant 
     """
     most_relevant_document_sections = order_document_sections_by_query_similarity(question, context_embeddings)
-    
+    print(f"Most relevant document sections:")
+    pprint(most_relevant_document_sections[:3])
     # used to calculate the length of the header's prompt encoding
     gpt_encoding = tiktoken.get_encoding(ENCODING_MODEL)
 
@@ -102,7 +104,6 @@ def construct_prompt(question: str, context_embeddings: dict, df: pd.DataFrame) 
      
     for _, section_index in most_relevant_document_sections:
         # Add contexts until we run out of space.
-        print(section_index)
         document_section = df.loc[section_index]
         # get the value of the tokens column
         
@@ -117,8 +118,19 @@ def construct_prompt(question: str, context_embeddings: dict, df: pd.DataFrame) 
     # Useful diagnostic information
     print(f"Selected {len(chosen_sections)} document sections:")
     print("\n".join(chosen_sections_indexes))
+
+    question = clean_query(question)
+    question = "Segun la ley y los articulos seleccionados " + question + " ?"
     
-    return HEADER + "".join(chosen_sections) + "\n\n Q: " + question + "\n A:"
+    return HEADER + "".join(chosen_sections) + "\n\n Pregunta: " + question + "\n Respuesta:"
+
+
+def clean_query(query: str) -> str:
+    """
+    Remove punctuation and other characters from the query.
+    """
+    return re.sub(r"[^\w\s]", "", query).lower()
+
 
 def get_section_text(section_index: tuple[float, tuple[str, str, str]], df: pd.DataFrame) -> str:
     """

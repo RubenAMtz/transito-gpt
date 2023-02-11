@@ -1,12 +1,36 @@
 import openai
 import tiktoken
 import os
+import random
 
-HEADER = """Las preguntas tratarán de describir una situación, y quizá vengan acompañadas de una pregunta. Contesta el comentario y/o pregunta apoyándote del contexto proporcionado y de tu conocimiento general en el tema. Describe tu respuesta con un tono amigable y formal, trata de ponerte en los zapatos del usuario. Se claro y trata de evitar palabras ambiguas. Si la pregunta o comentario no tienen que ver con leyes de tránsito no respondas, repito, no contestes a preguntas o comentarios que no sean relacionadas a las Leyes de Tránsito.\n\nContexto:\n"""
+HEADER = """Las preguntas tratarán de describir una situación, y quizá vengan acompañadas de una pregunta. Contesta el comentario y/o pregunta apoyándote del contexto MAS relevante y de tu conocimiento general en el tema. Describe tu respuesta con un tono amigable y formal, trata de ponerte en los zapatos del usuario. Contesta desde el punto de vista de un conductor a menos que se indique lo contrario. Se claro y trata de evitar palabras ambiguas. Si la pregunta o comentario no tienen que ver con leyes de tránsito no respondas, repito, no contestes a preguntas o comentarios que no sean relacionadas a las Leyes de Tránsito.\n\nContexto:\n"""
 
-# HEADER = """Contesta la pregunta de la forma más honesta posible apoyandote del contexto proporcionado, haz referencias al contexto si es necesario, cuando hagas referencia al contexto di algo como "Segun el documento oficial ", y si la respuesta no está contenida en el texto a continuación, diga "Una disculpa, no lo sé, intenta siendo más específico. Asegúrate que la respuesta tenga que ver con la pregunta Q y describe tu respuesta con un tono amigable y formal. Enriquice la respuesta con datos relevantes".\n\nContexto:\n
+HEADER = """Imagina que eres un abogado de leyes de tránsito. Un usuario te ha hecho una pregunta o comentario en el que te pide ayuda. Las preguntas tratarán de describir una situación, y quizá vengan acompañadas de una pregunta. Contesta el comentario y/o pregunta apoyándote del contexto MAS relevante y de tu conocimiento general en el tema. Si la pregunta o comentario están fuera del contexto de la ley de tránsito invita al usuario a reformular su pregunta y hazle saber porqué lo haces. Por ejemplo:
 
-# Para informacion más clara y precisa, te invitamos a leer los articulos en los que está basada esta respuesta
+Pregunta: ¿Qué pasa si me detienen por manejar ebrio?
+
+*Revisa el contexto y elige la respuesta más adecuada*
+Respuesta: Según las leyes de tránsito ... etc.
+
+Pregunta: ¿Puedo cruzarme un semáforo en amarillo?
+
+*Revisa el contexto y elige la respuesta más adecuada*
+Respuesta: La ley dice que ... etc.
+
+\n\nContexto:\n
+"""
+
+QUESTIONS = [
+    "¿Qué pasa si me detienen por manejar ebrio?",
+    "¿Puedo cruzarme un semáforo en amarillo?",
+    "¿Puedo estacionarme en doble fila?",
+    "¿Puedo estacionarme en la banqueta?",
+    "¿Me puedo estacionar en sentido contrario?",
+    "¿Puedo conducir con comida en la mano?",
+    "¿Puedo conducir con mi mascota?"
+]
+
+QUESTION = random.choice(QUESTIONS)
 
 COMPLETIONS_MODEL = "text-davinci-003"
 EMBEDDING_MODEL = "text-embedding-ada-002"

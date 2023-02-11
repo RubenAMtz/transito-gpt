@@ -6,7 +6,7 @@ import tiktoken
 
 gpt_encoding = tiktoken.get_encoding('p50k_base') # encoding for text-davinci-003
 og_text = extract_text("docs/leydetransito.pdf")
-name = 'leydetransitov3' # change this to the name of the csv and json files you want to save
+name = 'leydetransitov4' # change this to the name of the csv and json files you want to save
 
 # create a dictionary with the following hierarchical structure:
 """
@@ -54,7 +54,7 @@ for i, articulo in enumerate(articulos):
     encoded_article = gpt_encoding.encode(articulo)
     pdf[f'articulo {i+1}'] = {}
     split_len = 300
-    stride = 150
+    stride = 300 # change this to 300 to not have overlapping
     if lenght > split_len:
         # iterate through the encoded article with a sliding window of 300 tokens and stride of 150 tokens
         for j in range(0, lenght, stride):

@@ -1,12 +1,15 @@
 import streamlit as st
 import pandas as pd
 import core
+from constants import QUESTIONS, QUESTION
+import random
 
-df_name = "leydetransitov3.csv"
+df_name = "leydetransitov4.csv"
 df_index_columns = ["articulo", "parte"]
 embedding_index_columns = ["articulo", "parte"]
 
-embeddings_name = "embeddingsv3.csv"
+embeddings_name = "embeddingsv4.csv"
+
 
 def space(num_lines=1):
     """Adds empty lines to the Streamlit app."""
@@ -63,7 +66,7 @@ if __name__ == "__main__":
     space(2)
 
     st.markdown("### Describe tu situación o realiza una pregunta")
-    query = st.text_input("Escribe tu pregunta o situación", value="¿Qué pasa si me detienen por manejar ebrio?")
+    query = st.text_input("Escribe tu pregunta o situación", value=f"{QUESTION}")
 
     st.markdown("#### Ley de transito")
     state = st.radio("¿En qué estado?", options=["Sonora"])

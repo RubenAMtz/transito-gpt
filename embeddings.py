@@ -3,11 +3,12 @@ import pandas as pd
 import time
 import os
 
-name = 'embeddingsv3.csv'
+ocr_data = 'leydetransitov4.csv'
+name = 'embeddingsv4.csv'
 index_columns = ['articulo', 'parte']
 
 # load the csv file
-df = pd.read_csv('leydetransitov3.csv')
+df = pd.read_csv(ocr_data)
 # define the index columns
 df = df.set_index(index_columns)
 
