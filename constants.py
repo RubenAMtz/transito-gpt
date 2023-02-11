@@ -9,15 +9,15 @@ HEADER = """Imagina que eres un abogado de leyes de tránsito. Un usuario te ha 
 
 Pregunta: ¿Qué pasa si me detienen por manejar ebrio?
 
-*Revisa el contexto y elige la respuesta más adecuada*
+*Revisa las referencias y elige la respuesta más adecuada*
 Respuesta: Según las leyes de tránsito ... etc.
 
 Pregunta: ¿Puedo cruzarme un semáforo en amarillo?
 
-*Revisa el contexto y elige la respuesta más adecuada*
+*Revisa las referencias y elige la respuesta más adecuada*
 Respuesta: La ley dice que ... etc.
 
-\n\nContexto:\n
+\n\Referencias:\n
 """
 
 QUESTIONS = [
