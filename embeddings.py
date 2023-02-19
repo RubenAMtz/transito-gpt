@@ -3,8 +3,8 @@ import pandas as pd
 import time
 import os
 
-ocr_data = 'leydetransitov4.csv'
-name = 'embeddingsv4.csv'
+ocr_data = 'leyseguridadpublicav1.csv'
+name = 'embeddings_seguridad_publica_v1.csv'
 index_columns = ['articulo', 'parte']
 
 # load the csv file
@@ -26,7 +26,7 @@ if name not in os.listdir():
     # add the number of tokens per row to the embedding based on the text
 
     # save the embeddings to a file
-    save_embeddings(f"{name}", index_columns, embeddings)
+    save_embeddings(f"{name}", index_columns, embeddings, store_path='embeddings_store')
 
 else:
     print("Embeddings file already computed.")
