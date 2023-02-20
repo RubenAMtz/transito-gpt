@@ -3,8 +3,8 @@ import openai
 import pandas as pd
 import pandas as pd
 from tenacity import retry, wait_random_exponential, stop_after_attempt
-from constants import COMPLETIONS_MODEL, EMBEDDING_MODEL, MAX_SECTION_LEN, SEPARATOR, ENCODING, encoding, \
-    separator_len, COMPLETIONS_API_PARAMS, SUMMARIZATION_HEADER
+from constants import COMPLETIONS_MODEL, EMBEDDING_MODEL, MAX_SECTION_LEN, SEPARATOR_A, ENCODING, encoding, \
+    COMPLETIONS_API_PARAMS, SUMMARIZATION_HEADER
 from constants import HEADER, ENCODING_MODEL, QUESTIONS
 import tiktoken
 import re
@@ -69,7 +69,7 @@ def load_embedding(fname: str, index_columns: list[str], store_path='embeddings_
     # get the maximum dimension of the embedding vectors, ignoring the index columns and the tokens column
     max_dim = max([int(c) for c in df.columns if c not in index_columns]) + 1
     return {
-        (row.articulo, row.parte): [row[str(i)] for i in range(max_dim)] for _, row in df.iterrows()
+        (row.ley, row.articulo, row.parte): [row[str(i)] for i in range(max_dim)] for _, row in df.iterrows()
     }
 
 
@@ -113,105 +113,13 @@ def order_document_sections_by_query_similarity(query: str, contexts: dict[(str,
     return document_similarities
 
 
-def contruct_prompts(question: str, contexts_embeddings: list[dict], dfs: list[pd.DataFrame]) -> str:
+def relevant_documents_to_text(relevant_documents: list[(float, (str, str))], context_df: pd.DataFrame) -> str:
     """
-    Fetch relevant context using the question and a set of pre-calculated documents embeddings.
-    Return the prompt to be used for the GPT-3 completion.
-    The prompt is constructed as follows:
-    1. The question is used to find the most relevant document sections.
-    2. The most relevant document sections are used to construct the prompt.
-
-    Args:
-        question (str): The question to be answered.
-        contexts_embeddings (list[dict]): The pre-calculated document embeddings.
-        dfs (list[pd.DataFrame]): The datasets.
-
-    Returns:
-        str: The prompt to be used for the GPT-3 completion.
+    Return the text of the most relevant documents, separated by a separator.
     """
-    pass
-
-
-def construct_prompt_for_summarization(question, context_embeddings, context_df):
-    most_relevant_document_sections = order_document_sections_by_query_similarity(question, context_embeddings)
-    # used to calculate the length of the header's prompt encoding
-    gpt_tokenizer = tiktoken.get_encoding(ENCODING_MODEL)
-    chosen_sections_len = len(gpt_tokenizer.encode(SUMMARIZATION_HEADER))
-
-    chosen_sections = []
-    chosen_sections_indexes = []
-    for _, section_index in most_relevant_document_sections:
-        # Add contexts until we run out of space.
-        document_section = context_df.loc[section_index]
-        # get the value of the tokens column
-        
-        chosen_sections_len += document_section.tokens + separator_len
-        # print(chosen_sections_len)
-        if chosen_sections_len > MAX_SECTION_LEN:
-            break
-            
-        chosen_sections.append(SEPARATOR + document_section.texto.replace("\n", " "))
-        chosen_sections_indexes.append(str(section_index))
-    return SUMMARIZATION_HEADER + "".join(chosen_sections)
-
-
-def construct_prompt(question: str, context_embeddings: dict, context_df: pd.DataFrame) -> str:
-    """
-    Fetch relevant context using the question and the pre-calculated document embeddings.
-    Return the prompt to be used for the GPT-3 completion.
-    The prompt is constructed as follows:
-    1. The question is used to find the most relevant document sections.
-    2. The most relevant document sections are used to construct the prompt.
-    
-    Args:
-        question (str): The question to be answered.
-        context_embeddings (dict): The pre-calculated document embeddings.
-        context_df (pd.DataFrame): The dataset in context.
-
-    Returns:
-        str: The prompt to be used for the GPT-3 completion.
-    """
-    most_relevant_document_sections = order_document_sections_by_query_similarity(question, context_embeddings)
-    print(f"Most relevant document sections:")
-    pprint(most_relevant_document_sections[:3])
-    # used to calculate the length of the header's prompt encoding
-    gpt_tokenizer = tiktoken.get_encoding(ENCODING_MODEL)
-
-    chosen_sections = []
-    chosen_sections_len = len(gpt_tokenizer.encode(HEADER))
-    chosen_sections_indexes = []
-     
-    for _, section_index in most_relevant_document_sections:
-        # Add contexts until we run out of space.
-        document_section = context_df.loc[section_index]
-        # get the value of the tokens column
-        
-        chosen_sections_len += document_section.tokens + separator_len
-        # print(chosen_sections_len)
-        if chosen_sections_len > MAX_SECTION_LEN:
-            break
-            
-        chosen_sections.append(SEPARATOR + document_section.texto.replace("\n", " "))
-        chosen_sections_indexes.append(str(section_index))
-            
-    # Useful diagnostic information
-    print(f"Selected {len(chosen_sections)} document sections:")
-    print("\n".join(chosen_sections_indexes))
-
-    question = clean_query(question)
-    question = "Resolvamos esto paso a paso para asegurarnos de que tenemos la respuesta correcta. Segun la ley y los articulos seleccionados " + question + " ?"
-    
-    return HEADER + "".join(chosen_sections) + "\n\n Pregunta: " + question + "\n Respuesta:"
-
-
-def construct_prompt_generic(prompt: str, query: str,) -> str:
-    """
-    Constructs a prompt for a task specified by
-    the prompt parameter. It appends the query
-    to the prompt. 
-    """
-    query = clean_query(query)
-    return prompt + "\n" + query + "\n"
+    return SEPARATOR_A.join([
+        context_df.loc[doc_index].texto for _, doc_index in relevant_documents
+    ])
 
 
 def clean_query(query: str) -> str:
@@ -293,7 +201,8 @@ def ask_gpt(
 
     return response["choices"][0]["text"].strip(" \n")
 
-def clean_answer(answer: str) -> dict:
+
+def parse_answer(answer: str) -> dict:
     """
     Turns a GPT-3 answer into a dictionary.
 

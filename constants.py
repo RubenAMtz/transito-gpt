@@ -57,13 +57,17 @@ QUESTION = random.choice(QUESTIONS)
 COMPLETIONS_MODEL = "text-davinci-003"
 EMBEDDING_MODEL = "text-embedding-ada-002"
 
-MAX_SECTION_LEN = 1000
-SEPARATOR = "\n* "
+MAX_SECTION_LEN = 2500
+SEPARATOR_A = "\n* "
+SEPARATOR_A_ = "* "
+SEPARATOR_B = "\n- "
+SEPARATOR_B_ = "- "
+
+
 ENCODING = "cl100k_base"  # encoding for text-embedding-ada-002
 ENCODING_MODEL = 'p50k_base' # encoding for text-davinci-003
 
 encoding = tiktoken.get_encoding(ENCODING)
-separator_len = len(encoding.encode(SEPARATOR))
 
 # try to load api key from file, otherwise use environment variable but do not raise error if not found
 if os.path.exists("keys.txt"):
