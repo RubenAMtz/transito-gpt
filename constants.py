@@ -78,6 +78,6 @@ else:
 COMPLETIONS_API_PARAMS = {
     # We use temperature of 0.0 because it gives the most predictable, factual answer.
     "temperature": 0.0,
-    "max_tokens": 500,
+    "max_tokens": 1000,
     "model": COMPLETIONS_MODEL,
 }

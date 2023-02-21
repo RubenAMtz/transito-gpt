@@ -14,7 +14,7 @@ question_classification = {
     'complaint': False
 }
 
-- genere una infraccion de transito y el oficial se porto muy grosero
+- me detuvieron y el oficial se porto muy grosero
 question_classification = {
     'user_action_vs_law': False, 
     'officer_action_vs_law': True, 
@@ -32,6 +32,20 @@ question_classification = {
 question_classification = {
     'user_action_vs_law': True, 
     'officer_action_vs_law': True, 
+    'complaint': False
+}
+
+- me puedo estacionar en sentido contrario?
+question_classification = {
+    'user_action_vs_law': True,
+    'officer_action_vs_law': False,
+    'complaint': False
+}
+
+- me multaron pero no me dijeron por que
+question_classification = {
+    'user_action_vs_law': False,
+    'officer_action_vs_law': True,
     'complaint': False
 }
 {section_01}

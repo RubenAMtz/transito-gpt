@@ -10,6 +10,8 @@ import tiktoken
 import re
 from pprint import pprint
 import json
+import asyncio
+import aiohttp
 
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
@@ -200,6 +202,39 @@ def ask_gpt(
             )
 
     return response["choices"][0]["text"].strip(" \n")
+
+
+async def ask_gpt_async(
+    prompt: str,
+    session: aiohttp.ClientSession,
+    show_prompt: bool = False
+) -> str:
+    """
+    Ask GPT-3 to complete the prompt.
+    """
+    if show_prompt:
+        print(prompt)
+
+    response = openai.Completion.create(
+                prompt=prompt,
+                **COMPLETIONS_API_PARAMS
+            )
+
+    return response["choices"][0]["text"].strip(" \n")
+
+
+async def run_ask_gpt_async(
+    prompts: list[str],
+    show_prompt: bool = False
+) -> list[str]:
+    """
+    Ask GPT-3 to complete the prompt.
+    """
+    async with aiohttp.ClientSession() as session:
+        ret = await asyncio.gather(
+            *[ask_gpt_async(prompt, session, show_prompt=show_prompt) for prompt in prompts]
+        )
+    return ret
 
 
 def parse_answer(answer: str) -> dict:
