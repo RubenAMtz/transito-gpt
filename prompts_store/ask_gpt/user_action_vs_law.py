@@ -10,5 +10,5 @@ First, we need to understand what the user did, so we can compare it with the la
 Second, we need to understand what the law says about the user's action. The relevant law articles are:
 '''{LDT_relevant_docs_user_action}.
 '''
-Finally, we determine if the user's action is legal or not:
+Now that we have all the information we need, explain to the user if both his/her actions and the officer's actions are aligned with the law. Let's work this out in a step by step way to be sure we have the right answer. Respond in Spanish. Remember, you are talking to a user, direct your answer to the user.
 """

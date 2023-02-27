@@ -32,5 +32,12 @@ ner={
     'user_action': None,
     'question': None,
     'other': 'no me dijeron por que'
+
+- me pueden multar dentro de mi casa?
+ner={
+    'officer_action_or_consequence': multar,
+    'user_action': None,
+    'question': 'me pueden',
+    'other': 'dentro de mi casa'
 {section_01}
 """

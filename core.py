@@ -20,7 +20,6 @@ def get_embedding(text: str, model: str=EMBEDDING_MODEL) -> list[float]:
       model=model,
       input=text
     )
-    query_embedding_length = len(result["data"][0]["embedding"])
     return result["data"][0]["embedding"]
 
 
@@ -137,53 +136,6 @@ def get_section_text(section_index: tuple[float, tuple[str, str, str]], df: pd.D
     """
     section_index = section_index[1]
     return df.loc[section_index].texto
-
-
-def answer_query_with_context(
-    query: str,
-    df: pd.DataFrame,
-    document_embeddings: dict[(str), np.array],
-    show_prompt: bool = False
-) -> str:
-    prompt = construct_prompt(
-        query,
-        document_embeddings,
-        df
-    )
-    
-    if show_prompt:
-        print(prompt)
-
-
-    response = openai.Completion.create(
-                prompt=prompt,
-                **COMPLETIONS_API_PARAMS
-            )
-
-    return response["choices"][0]["text"].strip(" \n")
-
-
-def summarize_context(
-    query: str,
-    document_embeddings: dict[(str), np.array],
-    df: pd.DataFrame,
-    show_prompt: bool = False
-) -> str:
-    prompt = construct_prompt_for_summarization(
-        query,
-        document_embeddings,
-        df
-    )
-    
-    if show_prompt:
-        print(prompt)
-
-    response = openai.Completion.create(
-                prompt=prompt,
-                **COMPLETIONS_API_PARAMS
-            )
-
-    return response["choices"][0]["text"].strip(" \n")
 
 
 def ask_gpt(

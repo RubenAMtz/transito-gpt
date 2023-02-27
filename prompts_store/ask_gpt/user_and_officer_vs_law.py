@@ -18,5 +18,5 @@ Fourth, we need to understand what the law says about the officer's actions. The
 '''Traffic law articles: {LDT_relevant_docs_officer_action}
 State security law articles: {LSP_relevant_doc_officer_action}
 '''
-Now that we have all the information we need, explain to the user if both his/her actions and the officer's actions are aligned with the law. Let's work this out in a step by step way to be sure we have the right answer. Respond in Spanish.
+Now that we have all the information we need, explain the answer to the user if both his/her actions and the officer's actions are aligned with the law. Let's work this out in a step by step way to be sure we have the right answer. Respond in Spanish. Remember, you are talking to a user, direct your answer to the user.
 """

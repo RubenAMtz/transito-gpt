@@ -9,135 +9,13 @@ from pprint import pprint
 from typing import Tuple, Any, Union
 
 
-
-# def construct_prompt(question: str, context_embeddings: dict, context_df: pd.DataFrame) -> str:
-#     """
-#     Fetch relevant context using the question and the pre-calculated document embeddings.
-#     Return the prompt to be used for the GPT-3 completion.
-#     The prompt is constructed as follows:
-#     1. The question is used to find the most relevant document sections.
-#     2. The most relevant document sections are used to construct the prompt.
-    
-#     Args:
-#         question (str): The question to be answered.
-#         context_embeddings (dict): The pre-calculated document embeddings.
-#         context_df (pd.DataFrame): The dataset in context.
-
-#     Returns:
-#         str: The prompt to be used for the GPT-3 completion.
-#     """
-#     most_relevant_document_sections = order_document_sections_by_query_similarity(question, context_embeddings)
-#     print(f"Most relevant document sections:")
-#     pprint(most_relevant_document_sections[:3])
-#     # used to calculate the length of the header's prompt encoding
-#     gpt_tokenizer = tiktoken.get_encoding(ENCODING_MODEL)
-
-#     chosen_sections = []
-#     chosen_sections_len = len(gpt_tokenizer.encode(HEADER))
-#     chosen_sections_indexes = []
-     
-#     for _, section_index in most_relevant_document_sections:
-#         # Add contexts until we run out of space.
-#         document_section = context_df.loc[section_index]
-#         # get the value of the tokens column
-        
-#         chosen_sections_len += document_section.tokens + len(gpt_tokenizer.encode(SEPARATOR_A))
-#         # print(chosen_sections_len)
-#         if chosen_sections_len > MAX_SECTION_LEN:
-#             break
-            
-#         chosen_sections.append(SEPARATOR + document_section.texto.replace("\n", " "))
-#         chosen_sections_indexes.append(str(section_index))
-            
-#     # Useful diagnostic information
-#     print(f"Selected {len(chosen_sections)} document sections:")
-#     print("\n".join(chosen_sections_indexes))
-
-#     question = clean_query(question)
-#     question = "Resolvamos esto paso a paso para asegurarnos de que tenemos la respuesta correcta. Segun la ley y los articulos seleccionados " + question + " ?"
-    
-#     return HEADER + "".join(chosen_sections) + "\n\n Pregunta: " + question + "\n Respuesta:"
-
-
-# def construct_append_prompt(prompt: str, query: str,) -> str:
-#     """
-#     Constructs a prompt for a task specified by
-#     the prompt parameter. It appends the query
-#     to the prompt. 
-#     """
-#     query = clean_query(query)
-#     return prompt + "\n" + query + "\n"
-
-
-# def construct_prompt_form(prompt: str, **kwargs) -> str:
-
-
-# def construct_prompt_for_summarization(question, context_embeddings, context_df):
-#     most_relevant_document_sections = order_document_sections_by_query_similarity(question, context_embeddings)
-#     # used to calculate the length of the header's prompt encoding
-#     gpt_tokenizer = tiktoken.get_encoding(ENCODING_MODEL)
-#     chosen_sections_len = len(gpt_tokenizer.encode(SUMMARIZATION_HEADER))
-
-#     chosen_sections = []
-#     chosen_sections_indexes = []
-#     for _, section_index in most_relevant_document_sections:
-#         # Add contexts until we run out of space.
-#         document_section = context_df.loc[section_index]
-#         # get the value of the tokens column
-        
-#         chosen_sections_len += document_section.tokens + len(gpt_tokenizer.encode(SEPARATOR_A))
-#         # print(chosen_sections_len)
-#         if chosen_sections_len > MAX_SECTION_LEN:
-#             break
-            
-#         chosen_sections.append(SEPARATOR + document_section.texto.replace("\n", " "))
-#         chosen_sections_indexes.append(str(section_index))
-#     return SUMMARIZATION_HEADER + "".join(chosen_sections)
-
-
-# def construct_form_prompt(question: str, context_embeddings: dict[(str, str), np.array], context_df: pd.DataFrame, prompt: str) -> str:
-#     """
-#     Constructs a prompt for a task specified by
-#     the prompt parameter. It fills out the 'blanks'
-#     in the prompt with the keyword arguments.
-#     """
-#     most_relevant_document_sections = order_document_sections_by_query_similarity(question, context_embeddings)
-#     # used to calculate the length of the header's prompt encoding
-#     gpt_tokenizer = tiktoken.get_encoding(ENCODING_MODEL)
-#     chosen_sections_len = len(gpt_tokenizer.encode(prompt))
-
-#     chosen_sections = []
-#     chosen_sections_indexes = []
-#     for _, section_index in most_relevant_document_sections:
-#         # Add contexts until we run out of space.
-#         document_section = context_df.loc[section_index]
-#         # get the value of the tokens column
-        
-#         chosen_sections_len += document_section.tokens + len(gpt_tokenizer.encode(SEPARATOR_A))
-#         # print(chosen_sections_len)
-#         if chosen_sections_len > MAX_SECTION_LEN:
-#             break
-
-#         # replace the prompt with the section's text
-
-            
-#         chosen_sections.append(SEPARATOR.join([
-#             document_section.articulo,
-#             document_section.parte,
-#             document_section.texto
-#         ]))
-#         chosen_sections_indexes.append(section_index)
-        
-#     prompt = HEADER + SEPARATOR.join(chosen_sections)
-#     return prompt, chosen_sections_indexes
-
-
 class PromptBuilder:
 
     def __init__(self, prompt_template: str) -> None:
         self.prompt = prompt_template
         self.relevant_documents = {}
         self.chosen_documents = []
+        self.chosen_documents_indexes = []
         self.prompt_built = None
 
     # we will define a max_section_length manually, and then we will add the sections until we reach that length
@@ -173,6 +51,7 @@ class PromptBuilder:
                 for index, document in self.relevant_documents.items():
                     if document == chosen_document:
                         self.chosen_documents.append((index,self.relevant_documents[index]))
+                        self.chosen_documents_indexes.append(index)
                         break
             
         return "".join(chosen_sections)
@@ -267,18 +146,3 @@ class PromptBuilder:
         
 
     
-
-# mock-up:
-# prompt_builder = PromptBuilder()
-
-#  prompt_builder.get_relevant_documents(query, context_df) # returns both index and text of the most relevant sections: (index, text)
-
-# prompt_builder.build_prompt(prompt, {'section_01': {'text':'some text', 'max_length': 512}, 'section_02': {'text':'some other text', 'max_length': 128}})
-# or
-# prompt_builder.build_prompt(prompt, {'section_01': {'text': ['some text', 'some more text'], 'max_length': 512}, 'section_02': {'text':'some other text', 'max_length': 128}
-
-# prompt_builder.get_texts_indexes() # returns the index of the text sections used in the prompt
-
-        # for key, value in text_sections.items():
-        #     prompt = prompt.replace(f"{{{key}}}", value)
-        # return prompt

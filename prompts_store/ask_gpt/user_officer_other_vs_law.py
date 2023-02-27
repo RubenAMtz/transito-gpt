@@ -23,5 +23,5 @@ Fifth, we need to understand the context the user is adding, so we can compare i
 {other}.
 '''
 Now that we have all the information we need, explain to the user if both his/her actions and the officer's actions are aligned with the law,  take into account the context the user is adding.
-Let's work this out in a step by step way to be sure we have the right answer. Respond in Spanish.
+Let's work this out in a step by step way to be sure we have the right answer. Respond in Spanish. Remember, you are talking to a user, direct your answer to the user.
 """

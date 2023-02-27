@@ -1,0 +1,5 @@
+[logger]
+
+level = "info"
+
+messageFormat = "%(asctime)s %(message)s"

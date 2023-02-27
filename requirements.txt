@@ -4,3 +4,4 @@ numpy
 openai
 tenacity
 streamlit
+fpdf2

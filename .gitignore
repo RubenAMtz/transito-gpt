@@ -2,3 +2,6 @@
 *docs*
 *__pycache__/*
 *json*
+.vscode
+archive
+*pdfs_store*

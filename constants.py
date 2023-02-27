@@ -43,13 +43,17 @@ Text to summarize:
 """
 
 QUESTIONS = [
-    "¿Qué pasa si me detienen por manejar ebrio?",
-    "¿Puedo cruzarme un semáforo en amarillo?",
-    "¿Puedo estacionarme en doble fila?",
     "¿Puedo estacionarme en la banqueta?",
     "¿Me puedo estacionar en sentido contrario?",
     "¿Puedo conducir con comida en la mano?",
-    "¿Puedo conducir con mi mascota?"
+    "¿Puedo conducir con mi mascota?",
+    'me puedo estacionar en doble fila?',
+    'me pueden arrestar dentro de mi casa?',
+    'me pueden multar por no usar el cinturon?',
+    'es normal que te esposen por una infraccion de transito?',
+    'me cruce un semaforo y me llevaron al juzgado, tiene esa facultad un oficial?',
+    'me multaron por no traer el cinturon, es correcto?',
+    'me multaron por manejar en sentido contrario pero el oficial se porto muy grosero'
 ]
 
 QUESTION = random.choice(QUESTIONS)
